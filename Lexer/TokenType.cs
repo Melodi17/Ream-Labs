@@ -1,4 +1,4 @@
-﻿namespace Ream_Labs;
+﻿namespace Ream;
 
 public enum TokenType
 {
@@ -7,8 +7,8 @@ public enum TokenType
     Right_Brace,
 
     // Single character
-    Comma, Dot, Plus, Minus, Star, Slash, Colon, Ampersand,
-    Pipe, Equal, Not, Greater, Less,
+    Comma, Period, Plus, Minus, Star, Slash, Colon,
+    Ampersand, Pipe, Equal, Not, Greater, Less,
 
     // Multi character
     Not_Equal, Equal_Equal, Greater_Equal, Less_Equal,

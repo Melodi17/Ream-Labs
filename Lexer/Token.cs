@@ -1,4 +1,4 @@
-﻿namespace Ream_Labs;
+﻿namespace Ream;
 
 public class Token
 {
