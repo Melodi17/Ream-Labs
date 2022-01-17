@@ -141,7 +141,7 @@ namespace Ream.Lexing
         private char Peek(int n = 0)
         {
             if (current + n >= Source.Length) return '\0';
-            return Source[current + 1];
+            return Source[current + n];
         }
         private void HandleString(char st)
         {

@@ -13,7 +13,17 @@ namespace Ream.Parsing
         {
             this.Tokens = tokens;
         }
-
+        public Expr Parse()
+        {
+            try
+            {
+                return Expression();
+            }
+            catch (ParseError error)
+            {
+                return null;
+            }
+        }
         private Expr Expression()
         {
             return ExprEquality();
@@ -153,26 +163,18 @@ namespace Ream.Parsing
                 switch (Peek().Type)
                 {
                     case TokenType.If:
-                        break;
                     case TokenType.Else:
-                        break;
                     case TokenType.Elif:
-                        break;
                     case TokenType.For:
-                        break;
                     case TokenType.While:
-                        break;
                     case TokenType.Function:
-                        break;
                     case TokenType.Global:
-                        break;
                     case TokenType.Return:
-                        break;
                     case TokenType.Class:
-                        break;
-                    default:
-                        break;
+                        return;
                 }
+
+                Advance();
             }
         }
     }

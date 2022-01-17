@@ -1,24 +1,16 @@
 ﻿using Ream.Lexing;
 using Ream.Parsing;
+using Ream.Interpreting;
 
 namespace Ream
 {
     public class Program
     {
+        public static readonly Interpreter Interpreter = new();
         public static bool ErrorOccured = false;
+        public static bool RuntimeErrorOccured = false;
         public static void Main(string[] args)
         {
-            Expr expression = new Expr.Binary(
-                new Expr.Unary(
-                    new Token(TokenType.Minus, "-", null, 1),
-                    new Expr.Literal(123)),
-                new Token(TokenType.Star, "*", null, 1),
-                new Expr.Grouping(
-                    new Expr.Literal(45.67)));
-
-            Console.WriteLine(new ASTPrinter().Print(expression));
-            return;
-
             //ASTGenerator.DefineAst(Path.Join("..", "..", "..", "Parsing", "ASTExpr.cs"), "Expr", new string[]
             //{
             //    "Binary : Expr left, Token @operator, Expr right",
@@ -37,8 +29,8 @@ namespace Ream
         {
             Run(File.ReadAllText(path));
 
-            if (ErrorOccured)
-                Environment.Exit(65);
+            if (ErrorOccured) Environment.Exit(65);
+            if (RuntimeErrorOccured) Environment.Exit(70);
         }
 
         private static void RunPrompt()
@@ -57,11 +49,18 @@ namespace Ream
         {
             Lexer lexer = new(source);
             List<Token> tokens = lexer.Lex();
+            Parser parser = new Parser(tokens);
+            Expr expression = parser.Parse();
 
-            foreach (Token tok in tokens)
-            {
-                Console.WriteLine(tok);
-            }
+            if (ErrorOccured) return;
+
+            Interpreter.Interpret(expression);
+            //Console.WriteLine(new ASTPrinter().Print(expression));
+        }
+        public static void RuntimeError(RuntimeError error)
+        {
+            Console.Error.WriteLine($"Error on line {error.Token.Line}: {error.Message}");
+            RuntimeErrorOccured = true;
         }
 
         public static void Error(Token token, string message)
@@ -70,6 +69,11 @@ namespace Ream
                 Report(token.Line, " at end", message);
             else
                 Report(token.Line, $" at '{token.Raw}'", message);
+        }
+
+        public static void Error(int line, string message)
+        {
+            Report(line, "", message);
         }
 
         public static void Report(int line, string location, string message)
