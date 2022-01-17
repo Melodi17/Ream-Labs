@@ -23,7 +23,10 @@ namespace Ream.Lexing
             { "return", TokenType.Return },
             { "null", TokenType.Null },
             { "class", TokenType.Class },
-            { "this", TokenType.This }
+            { "this", TokenType.This },
+            { "true", TokenType.True },
+            { "false", TokenType.True },
+            { "write", TokenType.Write }
         };
 
         public Lexer(string source)

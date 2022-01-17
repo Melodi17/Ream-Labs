@@ -1,6 +1,7 @@
-﻿using Ream.Lexing;
+﻿using Ream.Interpreting;
+using Ream.Lexing;
 using Ream.Parsing;
-using Ream.Interpreting;
+using Ream.Tools;
 
 namespace Ream
 {
@@ -17,6 +18,12 @@ namespace Ream
             //    "Grouping : Expr expression",
             //    "Literal : Object value",
             //    "Unary : Token @operator, Expr right"
+            //}.ToList());
+
+            //ASTGenerator.DefineAst(Path.Join("..", "..", "..", "Interpreting", "Stmt.cs"), "Stmt", new string[]
+            //{
+            //    "Expression : Expr expression",
+            //    "Write      : Expr expression",
             //}.ToList());
 
             if (args.Any())
@@ -50,11 +57,11 @@ namespace Ream
             Lexer lexer = new(source);
             List<Token> tokens = lexer.Lex();
             Parser parser = new Parser(tokens);
-            Expr expression = parser.Parse();
+            List<Stmt> statements = parser.Parse();
 
             if (ErrorOccured) return;
 
-            Interpreter.Interpret(expression);
+            Interpreter.Interpret(statements);
             //Console.WriteLine(new ASTPrinter().Print(expression));
         }
         public static void RuntimeError(RuntimeError error)

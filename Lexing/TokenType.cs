@@ -17,7 +17,7 @@
         Slash_Equal, Colon_Colon, 
 
         If, Else, Elif, For, While, Function, Global,
-        Return, Null, Class, This, True, False,
+        Return, Null, Class, This, Write, True, False,
 
         Newline, End
     }

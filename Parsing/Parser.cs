@@ -13,22 +13,20 @@ namespace Ream.Parsing
         {
             this.Tokens = tokens;
         }
-        public Expr Parse()
+        public List<Stmt> Parse()
         {
-            try
+            List<Stmt> statements = new();
+            while (!AtEnd)
             {
-                return Expression();
+                statements.Add(Statement());
             }
-            catch (ParseError error)
-            {
-                return null;
-            }
+
+            return statements;
         }
         private Expr Expression()
         {
             return ExprEquality();
         }
-
         private Expr ExprEquality()
         {
             Expr expr = ExprComparison();
@@ -42,11 +40,10 @@ namespace Ream.Parsing
 
             return expr;
         }
-
         private Expr ExprComparison()
         {
             Expr expr = ExprTerm();
-            
+
             while (Match(TokenType.Greater, TokenType.Greater_Equal, TokenType.Less, TokenType.Less_Equal))
             {
                 Token op = Previous();
@@ -56,7 +53,6 @@ namespace Ream.Parsing
 
             return expr;
         }
-
         private Expr ExprTerm()
         {
             Expr expr = ExprFactor();
@@ -70,7 +66,6 @@ namespace Ream.Parsing
 
             return expr;
         }
-
         private Expr ExprFactor()
         {
             Expr expr = ExprUnary();
@@ -84,7 +79,6 @@ namespace Ream.Parsing
 
             return expr;
         }
-
         private Expr ExprUnary()
         {
             if (Match(TokenType.Not, TokenType.Minus))
@@ -96,14 +90,14 @@ namespace Ream.Parsing
 
             return ExprPrimary();
         }
-
         private Expr ExprPrimary()
         {
+            Token tok = Peek();
             if (Match(TokenType.True)) return new Expr.Literal(true);
             if (Match(TokenType.False)) return new Expr.Literal(true);
             if (Match(TokenType.Null)) return new Expr.Literal(true);
             if (Match(TokenType.String, TokenType.Interger))
-                return new Expr.Literal(Previous().Raw);
+                return new Expr.Literal(Previous().Value);
             if (Match(TokenType.Left_Parenthesis))
             {
                 Expr expr = Expression();
@@ -113,7 +107,6 @@ namespace Ream.Parsing
 
             throw Error(Peek(), "Expected expression");
         }
-
         private bool Match(params TokenType[] types)
         {
             foreach (TokenType type in types)
@@ -132,9 +125,9 @@ namespace Ream.Parsing
             if (AtEnd) return false;
             return Peek().Type == type;
         }
-        private Token Consume(TokenType type, string message)
+        private Token Consume(TokenType type, string message, bool allowPrematureEnd = false)
         {
-            if (Check(type)) return Advance();
+            if (Check(type) || (allowPrematureEnd && AtEnd)) return Advance();
 
             throw Error(Peek(), message);
         }
@@ -176,6 +169,27 @@ namespace Ream.Parsing
 
                 Advance();
             }
+        }
+
+        private Stmt Statement()
+        {
+            if (Match(TokenType.Write)) return PrintStatement();
+
+            return ExpressionStatement();
+        }
+
+        private Stmt ExpressionStatement()
+        {
+            Expr expr = Expression();
+            Consume(TokenType.Newline, "Expected line to end", true);
+            return new Stmt.Expression(expr);
+        }
+
+        private Stmt PrintStatement()
+        {
+            Expr value = Expression();
+            Consume(TokenType.Newline, "Expected line to end", true);
+            return new Stmt.Write(value);
         }
     }
 }

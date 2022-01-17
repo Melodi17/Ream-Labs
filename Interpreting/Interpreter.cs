@@ -5,19 +5,25 @@ using Ream.Tools;
 
 namespace Ream.Interpreting
 {
-    public class Interpreter : Expr.Visitor<Object>
+    public class Interpreter : Expr.Visitor<Object>, Stmt.Visitor<Object>
     {
-        public void Interpret(Expr expression)
+        public void Interpret(List<Stmt> statements)
         {
             try
             {
-                object value = Evaluate(expression);
-                Console.WriteLine(Stringify(value));
+                foreach (Stmt statement in statements)
+                {
+                    Execute(statement);
+                }
             }
             catch (RuntimeError error)
             {
                 Program.RuntimeError(error);
             }
+        }
+        public void Execute(Stmt stmt)
+        {
+            stmt.Accept(this);
         }
         public object VisitBinaryExpr(Expr.Binary expr)
         {
@@ -149,8 +155,22 @@ namespace Ream.Interpreting
                 }
                 return text;
             }
+            if (obj is bool) return obj.ToString().ToLower();
 
             return obj.ToString();
+        }
+
+        public object VisitExpressionStmt(Stmt.Expression stmt)
+        {
+            Evaluate(stmt.expression);
+            return null;
+        }
+
+        public object VisitWriteStmt(Stmt.Write stmt)
+        {
+            object value = Evaluate(stmt.expression);
+            Console.WriteLine(value);
+            return null;
         }
     }
 }
