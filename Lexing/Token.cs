@@ -1,4 +1,4 @@
-﻿namespace Ream
+﻿namespace Ream.Lexing
 {
     public class Token
     {
