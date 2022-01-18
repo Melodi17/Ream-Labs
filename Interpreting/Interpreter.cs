@@ -6,7 +6,15 @@ namespace Ream.Interpreting
 {
     public class Interpreter : Expr.Visitor<Object>, Stmt.Visitor<Object>
     {
-        private Scope Scope = new(null);
+        private readonly Scope Globals;
+        private Scope Scope;
+        public Interpreter()
+        {
+            Globals = new();
+            Scope = Globals;
+
+            Globals.Define("write", new ExternalCustomCallable())
+        }
         public void Interpret(List<Stmt> statements)
         {
             try
@@ -246,11 +254,31 @@ namespace Ream.Interpreting
         }
         public object VisitForStmt(Stmt.For stmt)
         {
-            foreach (object item in GetIterator(stmt.iterator))
+            if (stmt.name != null)
             {
-                Stmt body = new Stmt.Block()
-                Execute(stmt.body);
+                Scope previous = this.Scope;
+                try
+                {
+                    this.Scope = new Scope(this.Scope);
+                    foreach (object item in GetIterator(stmt.iterator))
+                    {
+                        Scope.Set(stmt.name, item);
+                        Execute(stmt.body);
+                    }
+                }
+                finally
+                {
+                    this.Scope = previous;
+                }
+
+
+
             }
+            else
+                foreach (object item in GetIterator(stmt.iterator))
+                    Execute(stmt.body);
+
+            return null;
         }
         public List<object> GetIterator(Expr expression)
         {
@@ -263,6 +291,20 @@ namespace Ream.Interpreting
             {
                 return s.ToCharArray().Select(x => (object)x.ToString()).ToList();
             }
+            return new(1);
+        }
+        public object VisitCallExpr(Expr.Call expr)
+        {
+            object callee = Evaluate(expr.callee);
+
+            if (callee is not ICallable)
+            {
+                throw new RuntimeError(expr.paren, "Only functions and classes can be called");
+            }
+
+            List<object> args = expr.arguments.Select(x => Evaluate(x)).ToList();
+            ICallable function = (ICallable)callee;
+            return function.Call(this, args);
         }
     }
 }

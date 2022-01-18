@@ -134,7 +134,44 @@ namespace Ream.Parsing
                 return new Expr.Unary(op, right);
             }
 
-            return ExprPrimary();
+            return ExprCall();
+        }
+        private Expr ExprCall()
+        {
+            Expr expr = ExprPrimary();
+
+            while (true)
+            {
+                if (Match(TokenType.Left_Parenthesis))
+                {
+                    expr = ExprFinishCall(expr);
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return expr;
+        }
+        private Expr ExprFinishCall(Expr callee)
+        {
+            List<Expr> arguments = new();
+            if (!Check(TokenType.Right_Parenthesis))
+            {
+                do
+                {
+                    if (arguments.Count >= 255)
+                        Error(Peek(), "Maximum of 255 arguments allowed");
+
+                    arguments.Add(Expression());
+                } while (Match(TokenType.Comma));
+            }
+
+            Token paren = Consume(TokenType.Right_Parenthesis, "Expected ')' after arguments");
+            //ExpectEnd();
+
+            return new Expr.Call(callee, paren, arguments);
         }
         private Expr ExprPrimary()
         {

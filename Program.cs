@@ -26,6 +26,7 @@ namespace Ream
             {
                 "Assign   : Token name, Expr value",
                 "Binary   : Expr left, Token @operator, Expr right",
+                "Call     : Expr callee, Token paren, List<Expr> arguments",
                 "Grouping : Expr expression",
                 "Literal  : Object value",
                 "Logical  : Expr left, Token @operator, Expr right",
@@ -44,6 +45,8 @@ namespace Ream
                 "While      : Expr condition, Stmt body",
                 "For        : Token name, Expr iterator, Stmt body",
             }.ToList());
+
+            Console.WriteLine("[ASTGenerator] AST nodes Expr and Stmt have been updated");
         }
 
         private static void RunFile(string path)
