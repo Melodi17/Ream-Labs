@@ -13,7 +13,11 @@ namespace Ream.Interpreting
             Globals = new();
             Scope = Globals;
 
-            Globals.Define("write", new ExternalCustomCallable())
+            Globals.Define("write", new ExternalCustomCallable((i, l) => 
+            {
+
+                return null;
+            }, 0));
         }
         public void Interpret(List<Stmt> statements)
         {
