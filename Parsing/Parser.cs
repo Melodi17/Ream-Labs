@@ -18,14 +18,34 @@ namespace Ream.Parsing
             List<Stmt> statements = new();
             while (!AtEnd)
             {
-                statements.Add(Statement());
+                statements.Add(Declaration());
             }
 
             return statements;
         }
         private Expr Expression()
         {
-            return ExprEquality();
+            return ExprAssignment();
+        }
+        private Expr ExprAssignment()
+        {
+            Expr expr = ExprEquality();
+
+            if (Match(TokenType.Equal))
+            {
+                Token eq = Previous();
+                Expr value = ExprAssignment();
+
+                if (expr is Expr.Variable)
+                {
+                    Token name = ((Expr.Variable)expr).name;
+                    return new Expr.Assign(name, value);
+                }
+
+                Error(eq, "Invalid assignment target");
+            }
+
+            return expr;
         }
         private Expr ExprEquality()
         {
@@ -94,15 +114,19 @@ namespace Ream.Parsing
         {
             Token tok = Peek();
             if (Match(TokenType.True)) return new Expr.Literal(true);
-            if (Match(TokenType.False)) return new Expr.Literal(true);
-            if (Match(TokenType.Null)) return new Expr.Literal(true);
+            if (Match(TokenType.False)) return new Expr.Literal(false);
+            if (Match(TokenType.Null)) return new Expr.Literal(null);
             if (Match(TokenType.String, TokenType.Interger))
-                return new Expr.Literal(Previous().Value);
+                return new Expr.Literal(Previous().Literal);
             if (Match(TokenType.Left_Parenthesis))
             {
                 Expr expr = Expression();
                 Consume(TokenType.Right_Parenthesis, "Expected ')' after expression");
                 return new Expr.Grouping(expr);
+            }
+            if (Match(TokenType.Identifier))
+            {
+                return new Expr.Variable(Previous());
             }
 
             throw Error(Peek(), "Expected expression");
@@ -170,7 +194,20 @@ namespace Ream.Parsing
                 Advance();
             }
         }
-
+        private Stmt Declaration()
+        {
+            try
+            {
+                if (Match(TokenType.Var)) return VarDeclaration();
+                
+                return Statement();
+            }
+            catch (ParseError error)
+            {
+                Synchronize();
+                return null;
+            }
+        }
         private Stmt Statement()
         {
             if (Match(TokenType.Write)) return PrintStatement();
@@ -178,18 +215,37 @@ namespace Ream.Parsing
             return ExpressionStatement();
         }
 
+        private Stmt VarDeclaration()
+        {
+            Token name = Consume(TokenType.Identifier, "Expected variable name");
+
+            Expr initializer = null;
+            if (Match(TokenType.Equal))
+            {
+                initializer = Expression();
+            }
+
+            ExpectEnd();
+            return new Stmt.Var(name, initializer);
+        }
+
         private Stmt ExpressionStatement()
         {
             Expr expr = Expression();
-            Consume(TokenType.Newline, "Expected line to end", true);
+            ExpectEnd();
             return new Stmt.Expression(expr);
         }
 
         private Stmt PrintStatement()
         {
             Expr value = Expression();
-            Consume(TokenType.Newline, "Expected line to end", true);
+            ExpectEnd();
             return new Stmt.Write(value);
+        }
+
+        private void ExpectEnd()
+        {
+            Consume(TokenType.Newline, "Expected line to end", true);
         }
     }
 }

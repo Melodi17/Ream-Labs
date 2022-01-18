@@ -19,6 +19,8 @@
         If, Else, Elif, For, While, Function, Global,
         Return, Null, Class, This, Write, True, False,
 
+        Var, // Temporary
+
         Newline, End
     }
 }

@@ -7,6 +7,7 @@ namespace Ream.Interpreting
 {
     public class Interpreter : Expr.Visitor<Object>, Stmt.Visitor<Object>
     {
+        private readonly ReamEnvironment Environment = new();
         public void Interpret(List<Stmt> statements)
         {
             try
@@ -171,6 +172,30 @@ namespace Ream.Interpreting
             object value = Evaluate(stmt.expression);
             Console.WriteLine(value);
             return null;
+        }
+
+        public object VisitVariableExpr(Expr.Variable expr)
+        {
+            return Environment.Get(expr.name);
+        }
+
+        public object VisitVarStmt(Stmt.Var stmt)
+        {
+            object value = null;
+            if (stmt.initializer != null)
+            {
+                value = Evaluate(stmt.initializer);
+            }
+
+            Environment.Define(stmt.name.Raw, value);
+            return null;
+        }
+
+        public object VisitAssignExpr(Expr.Assign expr)
+        {
+            object value = Evaluate(expr.value);
+            Environment.Set(expr.name, value);
+
         }
     }
 }

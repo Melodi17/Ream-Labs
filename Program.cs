@@ -12,24 +12,33 @@ namespace Ream
         public static bool RuntimeErrorOccured = false;
         public static void Main(string[] args)
         {
-            //ASTGenerator.DefineAst(Path.Join("..", "..", "..", "Parsing", "ASTExpr.cs"), "Expr", new string[]
-            //{
-            //    "Binary : Expr left, Token @operator, Expr right",
-            //    "Grouping : Expr expression",
-            //    "Literal : Object value",
-            //    "Unary : Token @operator, Expr right"
-            //}.ToList());
-
-            //ASTGenerator.DefineAst(Path.Join("..", "..", "..", "Interpreting", "Stmt.cs"), "Stmt", new string[]
-            //{
-            //    "Expression : Expr expression",
-            //    "Write      : Expr expression",
-            //}.ToList());
+            //UpdateAST();
+            //return;
 
             if (args.Any())
                 RunFile(args.First());
             else
                 RunPrompt();
+        }
+
+        private static void UpdateAST()
+        {
+            ASTGenerator.DefineAst(Path.Join("..", "..", "..", "Parsing", "ASTExpr.cs"), "Expr", new string[]
+            {
+                "Assign   : Token name, Expr value",
+                "Binary   : Expr left, Token @operator, Expr right",
+                "Grouping : Expr expression",
+                "Literal  : Object value",
+                "Unary    : Token @operator, Expr right",
+                "Variable : Token name"
+            }.ToList());
+
+            ASTGenerator.DefineAst(Path.Join("..", "..", "..", "Interpreting", "Stmt.cs"), "Stmt", new string[]
+            {
+                "Expression : Expr expression",
+                "Write      : Expr expression",
+                "Var        : Token name, Expr initializer"
+            }.ToList());
         }
 
         private static void RunFile(string path)
@@ -56,7 +65,7 @@ namespace Ream
         {
             Lexer lexer = new(source);
             List<Token> tokens = lexer.Lex();
-            Parser parser = new Parser(tokens);
+            Parser parser = new(tokens);
             List<Stmt> statements = parser.Parse();
 
             if (ErrorOccured) return;

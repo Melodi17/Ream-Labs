@@ -26,7 +26,8 @@ namespace Ream.Lexing
             { "this", TokenType.This },
             { "true", TokenType.True },
             { "false", TokenType.True },
-            { "write", TokenType.Write }
+            { "write", TokenType.Write },
+            { "var", TokenType.Var },
         };
 
         public Lexer(string source)
