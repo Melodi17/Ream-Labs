@@ -15,9 +15,9 @@ namespace Ream.Interpreting
 
             Globals.Define("write", new ExternalCustomCallable((i, l) => 
             {
-
+                Console.WriteLine(Stringify(l.First()));
                 return null;
-            }, 0));
+            }, 1));
         }
         public void Interpret(List<Stmt> statements)
         {
@@ -308,6 +308,13 @@ namespace Ream.Interpreting
 
             List<object> args = expr.arguments.Select(x => Evaluate(x)).ToList();
             ICallable function = (ICallable)callee;
+
+            int count = function.ArgumentCount();
+            if (args.Count != count)
+            {
+                throw new RuntimeError(expr.paren, $"Expected {count} parameters, got {args.Count}");
+            }
+
             return function.Call(this, args);
         }
     }
