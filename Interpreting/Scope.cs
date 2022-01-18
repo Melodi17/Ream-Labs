@@ -57,11 +57,12 @@ namespace Ream.Interpreting
         public object Get(Token key)
         {
             string keyName = key.Raw;
-            if (Values.ContainsKey(keyName))
-            {
-                return Values[keyName];
-            }
 
+            // If can be found locally
+            if (Values.ContainsKey(keyName))
+                return Values[keyName];
+
+            // If can't be found locally and has a parent to check
             if (HasParent) return Parent.Get(key);
 
             //throw new RuntimeError(key, $"Undefined variable '{keyName}'"); // return null instead
