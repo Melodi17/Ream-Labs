@@ -27,7 +27,6 @@ namespace Ream.Lexing
             { "true", TokenType.True },
             { "false", TokenType.True },
             { "write", TokenType.Write },
-            { "var", TokenType.Var },
         };
 
         public Lexer(string source)
@@ -64,9 +63,9 @@ namespace Ream.Lexing
                 case ']': AddToken(TokenType.Right_Square); break;
                 case ',': AddToken(TokenType.Comma); break;
                 case '.': AddToken(TokenType.Period); break;
-                case '&': AddToken(TokenType.Ampersand); break;
-                case '|': AddToken(TokenType.Pipe); break;
 
+                case '&': AddToken(Match('&') ? TokenType.Ampersand_Ampersand : TokenType.Ampersand); break;
+                case '|': AddToken(Match('|') ? TokenType.Pipe_Pipe : TokenType.Pipe); break;
                 case '=': AddToken(Match('=') ? TokenType.Equal_Equal : TokenType.Equal); break;
                 case '!': AddToken(Match('=') ? TokenType.Not_Equal : TokenType.Not); break;
                 case '>': AddToken(Match('=') ? TokenType.Greater_Equal : TokenType.Greater); break;

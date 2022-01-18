@@ -81,17 +81,14 @@ namespace Ream.Interpreting
 
             return null;
         }
-
         public object VisitGroupingExpr(Expr.Grouping expr)
         {
             return Evaluate(expr.expression);
         }
-
         public object VisitLiteralExpr(Expr.Literal expr)
         {
             return expr.value;
         }
-
         public object VisitUnaryExpr(Expr.Unary expr)
         {
             object right = Evaluate(expr.right);
@@ -107,12 +104,10 @@ namespace Ream.Interpreting
 
             return null;
         }
-
         private object Evaluate(Expr expr)
         {
             return expr.Accept(this);
         }
-
         private bool IsTruthy(object obj)
         {
             if (obj == null) return false;
@@ -120,7 +115,6 @@ namespace Ream.Interpreting
             if (obj is double) return (double)obj > 0;
             return true;
         }
-
         private bool IsEqual(object left, object right)
         {
             if (left == null && right == null) return true;
@@ -128,21 +122,18 @@ namespace Ream.Interpreting
 
             return left.Equals(right);
         }
-
         private void CheckIntergerOperand(Token token, object obj)
         {
             if (obj is double) return;
 
             throw new RuntimeError(token, "Operand must be an interger");
         }
-
         private void CheckIntergerOperands(Token token, object left, object right)
         {
             if (left is double && right is double) return;
 
             throw new RuntimeError(token, "Operands must be an intergers");
         }
-
         private string Stringify(object obj)
         {
             if (obj == null) return "null";
@@ -159,50 +150,51 @@ namespace Ream.Interpreting
 
             return obj.ToString();
         }
-
         public object VisitExpressionStmt(Stmt.Expression stmt)
         {
             Evaluate(stmt.expression);
             return null;
         }
-
         public object VisitWriteStmt(Stmt.Write stmt)
         {
             object value = Evaluate(stmt.expression);
             Console.WriteLine(Stringify(value));
             return null;
         }
-
         public object VisitVariableExpr(Expr.Variable expr)
         {
             return Scope.Get(expr.name);
         }
-
-        public object VisitVarStmt(Stmt.Var stmt)
+        public object VisitGlobalStmt(Stmt.Global stmt)
+        {
+            return DeclareStmt(stmt.name, stmt.initializer, true);
+        }
+        public object VisitLocalStmt(Stmt.Local stmt)
+        {
+            return DeclareStmt(stmt.name, stmt.initializer, false);
+        }
+        public object DeclareStmt(Token name, Expr initializer, bool isGlobal)
         {
             object value = null;
-            if (stmt.initializer != null)
+            if (initializer != null)
             {
-                value = Evaluate(stmt.initializer);
+                value = Evaluate(initializer);
             }
 
-            Scope.Define(stmt.name.Raw, value);
-            return null;
+            Scope.Set(name, value, isGlobal);
+            return value;
         }
-
         public object VisitAssignExpr(Expr.Assign expr)
         {
             object value = Evaluate(expr.value);
             Scope.Set(expr.name, value);
             return value;
         }
-
         public object VisitBlockStmt(Stmt.Block stmt)
         {
             ExecuteBlock(stmt.statements, new Scope(Scope));
             return null;
         }
-
         public void ExecuteBlock(List<Stmt> statements, Scope scope)
         {
             Scope previous = this.Scope;
@@ -220,7 +212,6 @@ namespace Ream.Interpreting
                 this.Scope = previous;
             }
         }
-
         public object VisitIfStmt(Stmt.If stmt)
         {
             if (IsTruthy(Evaluate(stmt.condition)))
@@ -233,6 +224,45 @@ namespace Ream.Interpreting
             }
 
             return null;
+        }
+        public object VisitLogicalExpr(Expr.Logical expr)
+        {
+            object left = Evaluate(expr.left);
+
+            if (expr.@operator.Type == TokenType.Pipe_Pipe)
+                if (IsTruthy(left)) return left;
+                else
+                if (!IsTruthy(left)) return left;
+
+            return Evaluate(expr.right);
+        }
+        public object VisitWhileStmt(Stmt.While stmt)
+        {
+            while (IsTruthy(Evaluate(stmt.condition)))
+            {
+                Execute(stmt.body);
+            }
+            return null;
+        }
+        public object VisitForStmt(Stmt.For stmt)
+        {
+            foreach (object item in GetIterator(stmt.iterator))
+            {
+                Stmt body = new Stmt.Block()
+                Execute(stmt.body);
+            }
+        }
+        public List<object> GetIterator(Expr expression)
+        {
+            object obj = Evaluate(expression);
+            if (obj is double d)
+            {
+                return Enumerable.Range(0, d.ToInt()).Select(x => (object)x).ToList();
+            }
+            if (obj is string s)
+            {
+                return s.ToCharArray().Select(x => (object)x.ToString()).ToList();
+            }
         }
     }
 }

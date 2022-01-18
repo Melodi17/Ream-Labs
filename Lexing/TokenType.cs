@@ -14,12 +14,11 @@
 
         Not_Equal, Equal_Equal, Greater_Equal, 
         Less_Equal, Plus_Equal, Minus_Equal, Star_Equal,
-        Slash_Equal, Colon_Colon, 
+        Slash_Equal, Colon_Colon, Ampersand_Ampersand, Pipe_Pipe,
 
         If, Else, Elif, For, While, Function, Global,
         Return, Null, Class, This, Write, True, False,
-
-        Var, // Temporary
+        Local,
 
         Newline, End
     }

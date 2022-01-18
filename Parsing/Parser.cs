@@ -29,7 +29,7 @@ namespace Ream.Parsing
         }
         private Expr ExprAssignment()
         {
-            Expr expr = ExprEquality();
+            Expr expr = ExprOr();
 
             if (Match(TokenType.Equal))
             {
@@ -43,6 +43,32 @@ namespace Ream.Parsing
                 }
 
                 Error(eq, "Invalid assignment target");
+            }
+
+            return expr;
+        }
+        private Expr ExprOr()
+        {
+            Expr expr = ExprAnd();
+
+            while (Match(TokenType.Pipe_Pipe))
+            {
+                Token op = Previous();
+                Expr right = ExprAnd();
+                expr = new Expr.Logical(expr, op, right);
+            }
+
+            return expr;
+        }
+        private Expr ExprAnd()
+        {
+            Expr expr = ExprEquality();
+
+            while (Match(TokenType.Ampersand_Ampersand))
+            {
+                Token op = Previous();
+                Expr right = ExprEquality();
+                expr = new Expr.Logical(expr, op, right);
             }
 
             return expr;
@@ -112,7 +138,6 @@ namespace Ream.Parsing
         }
         private Expr ExprPrimary()
         {
-            Token tok = Peek();
             if (Match(TokenType.True)) return new Expr.Literal(true);
             if (Match(TokenType.False)) return new Expr.Literal(false);
             if (Match(TokenType.Null)) return new Expr.Literal(null);
@@ -160,8 +185,8 @@ namespace Ream.Parsing
             if (!AtEnd) Current++;
             return Previous();
         }
-        private Token Peek()
-            => Tokens[Current];
+        private Token Peek(int n = 0)
+            => Tokens[Current + n];
         private Token Previous()
             => Tokens[Current - 1];
         private ParseError Error(Token token, string message)
@@ -198,7 +223,8 @@ namespace Ream.Parsing
         {
             try
             {
-                if (Match(TokenType.Var)) return VarDeclaration();
+                if (Match(TokenType.Global)) return VariableDeclaration(true);
+                if (Match(TokenType.Local)) return VariableDeclaration(false);
 
                 return Statement();
             }
@@ -211,12 +237,13 @@ namespace Ream.Parsing
         private Stmt Statement()
         {
             if (Match(TokenType.If)) return IfStatement();
+            if (Match(TokenType.While)) return WhileStatement();
+            if (Match(TokenType.For)) return ForStatement();
             if (Match(TokenType.Write)) return PrintStatement();
             if (Match(TokenType.Left_Brace)) return new Stmt.Block(Block());
 
             return ExpressionStatement();
         }
-
         private List<Stmt> Block()
         {
             List<Stmt> statements = new();
@@ -230,8 +257,7 @@ namespace Ream.Parsing
             ExpectEnd();
             return statements;
         }
-
-        private Stmt VarDeclaration()
+        private Stmt VariableDeclaration(bool isGlobal)
         {
             Token name = Consume(TokenType.Identifier, "Expected variable name");
 
@@ -242,28 +268,23 @@ namespace Ream.Parsing
             }
 
             ExpectEnd();
-            return new Stmt.Var(name, initializer);
+            return isGlobal ? new Stmt.Global(name, initializer) : new Stmt.Local(name, initializer);
         }
-
         private Stmt ExpressionStatement()
         {
             Expr expr = Expression();
             ExpectEnd();
             return new Stmt.Expression(expr);
         }
-
         private Stmt PrintStatement()
         {
             Expr value = Expression();
             ExpectEnd();
             return new Stmt.Write(value);
         }
-
         private Stmt IfStatement()
         {
-            Consume(TokenType.Left_Parenthesis, "Expected '(' after 'if'");
             Expr condition = Expression();
-            Consume(TokenType.Right_Parenthesis, "Expected ')' after 'if' condition");
             ExpectEnd();
 
             Stmt thenBranch = Statement();
@@ -275,7 +296,30 @@ namespace Ream.Parsing
 
             return new Stmt.If(condition, thenBranch, elseBranch);
         }
+        private Stmt WhileStatement()
+        {
+            Expr condition = Expression();
+            ExpectEnd();
 
+            Stmt body = Statement();
+
+            return new Stmt.While(condition, body);
+        }
+        private Stmt ForStatement()
+        {
+            Token name = null;
+            if (Peek(1).Type == TokenType.Colon)
+            {
+                name = Consume(TokenType.Identifier, "Expected identifier after 'for'");
+                Consume(TokenType.Colon, "Expected ':' after 'for' identifier");
+            }
+            Expr iterator = Expression();
+            ExpectEnd();
+
+            Stmt body = Statement();
+
+            return new Stmt.For(name, iterator, body);
+        }
         private void ExpectEnd()
         {
             Consume(TokenType.Newline, "Expected line to end", true);

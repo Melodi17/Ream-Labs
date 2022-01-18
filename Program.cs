@@ -13,7 +13,6 @@ namespace Ream
         public static void Main(string[] args)
         {
             //UpdateAST();
-            //return;
 
             if (args.Any())
                 RunFile(args.First());
@@ -29,6 +28,7 @@ namespace Ream
                 "Binary   : Expr left, Token @operator, Expr right",
                 "Grouping : Expr expression",
                 "Literal  : Object value",
+                "Logical  : Expr left, Token @operator, Expr right",
                 "Unary    : Token @operator, Expr right",
                 "Variable : Token name"
             }.ToList());
@@ -39,7 +39,10 @@ namespace Ream
                 "Expression : Expr expression",
                 "If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
                 "Write      : Expr expression",
-                "Var        : Token name, Expr initializer"
+                "Global     : Token name, Expr initializer",
+                "Local      : Token name, Expr initializer",
+                "While      : Expr condition, Stmt body",
+                "For        : Token name, Expr iterator, Stmt body",
             }.ToList());
         }
 

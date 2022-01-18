@@ -11,7 +11,10 @@ namespace Ream.Parsing
          public T VisitExpressionStmt(Expression stmt);
          public T VisitIfStmt(If stmt);
          public T VisitWriteStmt(Write stmt);
-         public T VisitVarStmt(Var stmt);
+         public T VisitGlobalStmt(Global stmt);
+         public T VisitLocalStmt(Local stmt);
+         public T VisitWhileStmt(While stmt);
+         public T VisitForStmt(For stmt);
      }
      public class Block : Stmt
       {
@@ -77,12 +80,12 @@ namespace Ream.Parsing
           }
       }
 
-     public class Var : Stmt
+     public class Global : Stmt
       {
      public readonly Token name;
      public readonly Expr initializer;
 
-         public Var(Token name, Expr initializer)
+         public Global(Token name, Expr initializer)
           {
              this.name = name;
              this.initializer = initializer;
@@ -90,7 +93,60 @@ namespace Ream.Parsing
 
           public override T Accept<T>(Visitor<T> visitor)
           {
-             return visitor.VisitVarStmt(this);
+             return visitor.VisitGlobalStmt(this);
+          }
+      }
+
+     public class Local : Stmt
+      {
+     public readonly Token name;
+     public readonly Expr initializer;
+
+         public Local(Token name, Expr initializer)
+          {
+             this.name = name;
+             this.initializer = initializer;
+          }
+
+          public override T Accept<T>(Visitor<T> visitor)
+          {
+             return visitor.VisitLocalStmt(this);
+          }
+      }
+
+     public class While : Stmt
+      {
+     public readonly Expr condition;
+     public readonly Stmt body;
+
+         public While(Expr condition, Stmt body)
+          {
+             this.condition = condition;
+             this.body = body;
+          }
+
+          public override T Accept<T>(Visitor<T> visitor)
+          {
+             return visitor.VisitWhileStmt(this);
+          }
+      }
+
+     public class For : Stmt
+      {
+     public readonly Token name;
+     public readonly Expr iterator;
+     public readonly Stmt body;
+
+         public For(Token name, Expr iterator, Stmt body)
+          {
+             this.name = name;
+             this.iterator = iterator;
+             this.body = body;
+          }
+
+          public override T Accept<T>(Visitor<T> visitor)
+          {
+             return visitor.VisitForStmt(this);
           }
       }
 
