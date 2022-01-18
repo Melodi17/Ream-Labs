@@ -7,7 +7,7 @@ namespace Ream.Interpreting
 {
     public class Interpreter : Expr.Visitor<Object>, Stmt.Visitor<Object>
     {
-        private readonly ReamEnvironment Environment = new();
+        private readonly Scope Scope = new(null);
         public void Interpret(List<Stmt> statements)
         {
             try
@@ -176,7 +176,7 @@ namespace Ream.Interpreting
 
         public object VisitVariableExpr(Expr.Variable expr)
         {
-            return Environment.Get(expr.name);
+            return Scope.Get(expr.name);
         }
 
         public object VisitVarStmt(Stmt.Var stmt)
@@ -187,15 +187,15 @@ namespace Ream.Interpreting
                 value = Evaluate(stmt.initializer);
             }
 
-            Environment.Define(stmt.name.Raw, value);
+            Scope.Define(stmt.name.Raw, value);
             return null;
         }
 
         public object VisitAssignExpr(Expr.Assign expr)
         {
             object value = Evaluate(expr.value);
-            Environment.Set(expr.name, value);
-
+            Scope.Set(expr.name, value);
+            return value;
         }
     }
 }
