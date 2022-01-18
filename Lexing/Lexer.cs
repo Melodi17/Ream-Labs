@@ -111,7 +111,7 @@ namespace Ream.Lexing
                         HandleIdentifier();
                     else
                     {
-                        Program.Error(line, "Unexpected character");
+                        Program.Error(line, $"Unexpected character '{c}'");
                     }
                     break;
             }

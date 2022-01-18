@@ -199,7 +199,7 @@ namespace Ream.Parsing
             try
             {
                 if (Match(TokenType.Var)) return VarDeclaration();
-                
+
                 return Statement();
             }
             catch (ParseError error)
@@ -210,9 +210,25 @@ namespace Ream.Parsing
         }
         private Stmt Statement()
         {
+            if (Match(TokenType.If)) return IfStatement();
             if (Match(TokenType.Write)) return PrintStatement();
+            if (Match(TokenType.Left_Brace)) return new Stmt.Block(Block());
 
             return ExpressionStatement();
+        }
+
+        private List<Stmt> Block()
+        {
+            List<Stmt> statements = new();
+            ExpectEnd();
+            while (!Check(TokenType.Right_Brace))
+            {
+                statements.Add(Declaration());
+            }
+
+            Consume(TokenType.Right_Brace, "Expected '}' after block");
+            ExpectEnd();
+            return statements;
         }
 
         private Stmt VarDeclaration()
@@ -241,6 +257,23 @@ namespace Ream.Parsing
             Expr value = Expression();
             ExpectEnd();
             return new Stmt.Write(value);
+        }
+
+        private Stmt IfStatement()
+        {
+            Consume(TokenType.Left_Parenthesis, "Expected '(' after 'if'");
+            Expr condition = Expression();
+            Consume(TokenType.Right_Parenthesis, "Expected ')' after 'if' condition");
+            ExpectEnd();
+
+            Stmt thenBranch = Statement();
+            Stmt elseBranch = null;
+            if (Match(TokenType.Else))
+            {
+                elseBranch = Statement();
+            }
+
+            return new Stmt.If(condition, thenBranch, elseBranch);
         }
 
         private void ExpectEnd()

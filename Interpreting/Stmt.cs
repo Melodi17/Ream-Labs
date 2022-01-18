@@ -7,10 +7,27 @@ namespace Ream.Parsing
      public abstract T Accept<T>(Visitor<T> visitor);
      public interface Visitor<T>
      {
+         public T VisitBlockStmt(Block stmt);
          public T VisitExpressionStmt(Expression stmt);
+         public T VisitIfStmt(If stmt);
          public T VisitWriteStmt(Write stmt);
          public T VisitVarStmt(Var stmt);
      }
+     public class Block : Stmt
+      {
+     public readonly List<Stmt> statements;
+
+         public Block(List<Stmt> statements)
+          {
+             this.statements = statements;
+          }
+
+          public override T Accept<T>(Visitor<T> visitor)
+          {
+             return visitor.VisitBlockStmt(this);
+          }
+      }
+
      public class Expression : Stmt
       {
      public readonly Expr expression;
@@ -23,6 +40,25 @@ namespace Ream.Parsing
           public override T Accept<T>(Visitor<T> visitor)
           {
              return visitor.VisitExpressionStmt(this);
+          }
+      }
+
+     public class If : Stmt
+      {
+     public readonly Expr condition;
+     public readonly Stmt thenBranch;
+     public readonly Stmt elseBranch;
+
+         public If(Expr condition, Stmt thenBranch, Stmt elseBranch)
+          {
+             this.condition = condition;
+             this.thenBranch = thenBranch;
+             this.elseBranch = elseBranch;
+          }
+
+          public override T Accept<T>(Visitor<T> visitor)
+          {
+             return visitor.VisitIfStmt(this);
           }
       }
 

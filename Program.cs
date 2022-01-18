@@ -35,7 +35,9 @@ namespace Ream
 
             ASTGenerator.DefineAst(Path.Join("..", "..", "..", "Interpreting", "Stmt.cs"), "Stmt", new string[]
             {
+                "Block      : List<Stmt> statements",
                 "Expression : Expr expression",
+                "If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
                 "Write      : Expr expression",
                 "Var        : Token name, Expr initializer"
             }.ToList());

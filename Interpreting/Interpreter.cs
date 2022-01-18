@@ -1,5 +1,4 @@
-﻿using Ream;
-using Ream.Lexing;
+﻿using Ream.Lexing;
 using Ream.Parsing;
 using Ream.Tools;
 
@@ -7,7 +6,7 @@ namespace Ream.Interpreting
 {
     public class Interpreter : Expr.Visitor<Object>, Stmt.Visitor<Object>
     {
-        private readonly Scope Scope = new(null);
+        private Scope Scope = new(null);
         public void Interpret(List<Stmt> statements)
         {
             try
@@ -170,7 +169,7 @@ namespace Ream.Interpreting
         public object VisitWriteStmt(Stmt.Write stmt)
         {
             object value = Evaluate(stmt.expression);
-            Console.WriteLine(value);
+            Console.WriteLine(Stringify(value));
             return null;
         }
 
@@ -196,6 +195,44 @@ namespace Ream.Interpreting
             object value = Evaluate(expr.value);
             Scope.Set(expr.name, value);
             return value;
+        }
+
+        public object VisitBlockStmt(Stmt.Block stmt)
+        {
+            ExecuteBlock(stmt.statements, new Scope(Scope));
+            return null;
+        }
+
+        public void ExecuteBlock(List<Stmt> statements, Scope scope)
+        {
+            Scope previous = this.Scope;
+            try
+            {
+                this.Scope = scope;
+
+                foreach (Stmt statement in statements)
+                {
+                    Execute(statement);
+                }
+            }
+            finally
+            {
+                this.Scope = previous;
+            }
+        }
+
+        public object VisitIfStmt(Stmt.If stmt)
+        {
+            if (IsTruthy(Evaluate(stmt.condition)))
+            {
+                Execute(stmt.thenBranch);
+            }
+            else if (stmt.elseBranch != null)
+            {
+                Execute(stmt.elseBranch);
+            }
+
+            return null;
         }
     }
 }

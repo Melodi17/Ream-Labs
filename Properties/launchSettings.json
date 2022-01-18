@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "Ream Labs": {
+      "commandName": "Project"
+    },
+    "Ream Labs Script": {
+      "commandName": "Project",
+      "commandLineArgs": "script.r"
+    }
+  }
+}
